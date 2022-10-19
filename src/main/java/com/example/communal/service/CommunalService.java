@@ -1,6 +1,7 @@
 package com.example.communal.service;
 
 import com.example.communal.client.NeighbourCitizen;
+import com.example.communal.configuration.CommunalFactorConfig;
 import com.example.communal.dto.CitizenInfoDto;
 import com.example.communal.dto.CommunalDto;
 import lombok.RequiredArgsConstructor;
@@ -14,21 +15,23 @@ public class CommunalService {
 
     private final NeighbourCitizen neighbourCitizenClient;
 
+    private final CommunalFactorConfig communalFactorConfig;
+
     public CommunalDto calculateByCitizen(UUID citizenId) {
         CitizenInfoDto citizen = neighbourCitizenClient.findByCitizen(citizenId);
 
-        Double totalCitizen = 1.0;
-        if (citizen.getTotalCitizens() > 3) {
-            totalCitizen = 1.5;
+        Double totalCitizen = communalFactorConfig.minFactorCitizen();
+        if (citizen.getTotalCitizens() > communalFactorConfig.totalCitizen()) {
+            totalCitizen = communalFactorConfig.maxFactorCitizen();
         }
 
-        Double couf = 1.9;
+        Double couf = communalFactorConfig.minFactorFlat();
         Integer flatNumber = Integer.getInteger(citizen.getFlatNumber());
         if (flatNumber % 2 == 0) {
-            couf= 2.3;
+            couf= communalFactorConfig.maxFactorFlat();
         }
 
-        Double result = 100 * totalCitizen * couf + (citizen.getTotalHouses() * 10);
+        Double result = communalFactorConfig.factorCitizen() * totalCitizen * couf + (citizen.getTotalHouses() * communalFactorConfig.factorTotalHouses());
 
         return new CommunalDto(result);
     }
